@@ -1,0 +1,61 @@
+# NOTE: update this with your service name
+service: slack-mute
+
+# Use the serverless-webpack plugin to transpile ES6
+plugins:
+  - serverless-webpack
+  - serverless-offline
+
+# serverless-webpack configuration
+# Enable auto-packing of external modules
+custom:
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
+    packager: yarn
+  serverless-offline:
+    port: 8080
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  region: eu-west-2
+  environment: ${file(./env.yml)}
+
+functions:
+  button:
+    handler: handlers/slack.auth.button
+    events:
+      - http:
+          path: slack/button
+          method: get
+          cors: true
+
+  authorize:
+    handler: handlers/slack.auth.authorize
+
+  oauth:
+    handler: handlers/slack.auth.oauth
+    events:
+      - http:
+          path: slack/oauth
+          method: get
+          cors: true
+
+  muttedGet:
+    handler: handlers/slack.mutted.get
+    events:
+      - http:
+          path: slack/mutted
+          method: get
+          cors: true
+          authorizer: authorize
+
+  muttedSet:
+    handler: handlers/slack.mutted.set
+    events:
+      - http:
+          path: slack/mutted
+          method: post
+          cors: true
+          authorizer: authorize

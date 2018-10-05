@@ -1,0 +1,9 @@
+{
+  "paths": {
+    "button": "https://slack.com/oauth/authorize"
+  },
+  "scopes": [
+    "read",
+    "post"
+  ]
+}
