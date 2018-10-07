@@ -4,6 +4,7 @@ service: slack-mute
 # Use the serverless-webpack plugin to transpile ES6
 plugins:
   - serverless-webpack
+  - serverless-dynamodb-local
   - serverless-offline
 
 # serverless-webpack configuration
@@ -15,12 +16,28 @@ custom:
     packager: yarn
   serverless-offline:
     port: 8080
+  dynamodb:
+    stages:
+      - dev
+    start:
+      port: 8000
+      migrate: true
 
 provider:
   name: aws
   runtime: nodejs8.10
   region: eu-west-2
   environment: ${file(./env.yml)}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
 
 functions:
   button:
@@ -43,19 +60,56 @@ functions:
           cors: true
 
   muttedGet:
-    handler: handlers/slack.mutted.get
+    handler: handlers/slack.muted.get
     events:
       - http:
-          path: slack/mutted
+          path: slack/muted
           method: get
           cors: true
           authorizer: authorize
 
   muttedSet:
-    handler: handlers/slack.mutted.set
+    handler: handlers/slack.muted.set
     events:
       - http:
-          path: slack/mutted
+          path: slack/muted
           method: post
           cors: true
           authorizer: authorize
+
+  historyGet:
+    handler: handlers/slack.history.get
+    events:
+      - http:
+          path: slack/history
+          method: get
+          cors: true
+          authorizer: authorize
+
+  historyDelete:
+    handler: handlers/slack.history.delete
+    events:
+      - http:
+          path: slack/history
+          method: delete
+          cors: true
+          authorizer: authorize
+
+resources:
+  Resources:
+    TodosDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: uid
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: uid
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}

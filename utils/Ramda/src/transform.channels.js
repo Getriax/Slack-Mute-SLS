@@ -1,10 +1,8 @@
 const R = require('ramda');
 
-const defined = R.filter(data => data);
-
-const buildChannels = R.map(({ channel }) => {
+const buildChannels = R.reduce((acc, channel) => {
   const { id, name } = channel;
-  return { [id]: name };
-});
+  return Object.assign(acc, { [id]: name });
+}, {});
 
-module.exports = R.pipe(defined, buildChannels);
+module.exports = buildChannels;

@@ -14,6 +14,7 @@
     "url": "https://github.com/AnomalyInnovations/serverless-nodejs-starter.git"
   },
   "devDependencies": {
+    "aws-sdk": "^2.329.0",
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.4",
     "babel-plugin-source-map-support": "^1.0.0",
@@ -28,7 +29,7 @@
     "webpack-node-externals": "^1.6.0"
   },
   "dependencies": {
-    "@slack/client": "getriax/node-slack-sdk#v4.6.1b",
+    "@slack/client": "getriax/node-slack-sdk#v4.6.2",
     "asyncro": "^3.0.0",
     "axios": "^0.18.0",
     "babel-runtime": "^6.26.0",
@@ -37,6 +38,7 @@
     "eslint-plugin-import": "^2.14.0",
     "jsonwebtoken": "^8.3.0",
     "ramda": "^0.25.0",
-    "source-map-support": "^0.4.18"
+    "source-map-support": "^0.4.18",
+    "uuid": "^3.3.2"
   }
 }

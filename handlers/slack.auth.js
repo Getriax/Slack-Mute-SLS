@@ -2,7 +2,7 @@ const R = require('ramda');
 const jwt = require('jsonwebtoken');
 const { WebClient } = require('@slack/client');
 
-const { ResponseBuilder, buildIAMPolicy } = require('../utils');
+const { ResponseBuilder, buildIAMPolicy, dynamodb } = require('../utils');
 const { paths, scopes } = require('../config/slack.config.json');
 
 const { CLIENT_ID, CLIENT_SECRET, JWT_SECRET } = process.env;
@@ -22,9 +22,9 @@ module.exports.button = (event, context, callback) => {
   };
 
   const slackButton = `${paths.button}?${buildParams(params)}`;
-  const responseBuilder = new ResponseBuilder({ slack_button: slackButton });
+  const responseBuilder = new ResponseBuilder(callback, { slack_button: slackButton });
 
-  responseBuilder.exec(callback);
+  responseBuilder.exec();
 };
 
 const isAuthorized = async (slackToken) => {
@@ -41,11 +41,11 @@ const isAuthorized = async (slackToken) => {
 module.exports.authorize = async (event, context, callback) => {
   const { authorizationToken } = event;
 
-  const responseBuilder = new ResponseBuilder();
+  const responseBuilder = new ResponseBuilder(callback);
   const unauthorized = () => {
     responseBuilder.setStatus(401);
     responseBuilder.setMessage('Unauthorized');
-    responseBuilder.exec(callback);
+    responseBuilder.exec();
   };
 
   if (!authorizationToken) {
@@ -60,11 +60,39 @@ module.exports.authorize = async (event, context, callback) => {
       return unauthorized();
     }
 
-    const policyDocument = buildIAMPolicy(userId, 'Allow', event.methodArn, { token });
+    const policyDocument = buildIAMPolicy(userId, 'Allow', event.methodArn, { token, userId });
 
     return callback(null, policyDocument);
   } catch (e) {
     return unauthorized();
+  }
+};
+
+const createUserDataIfNotExist = async (uid) => {
+  const TableName = process.env.DYNAMODB_TABLE;
+
+  try {
+    const response = await dynamodb.get({
+      TableName,
+      Key: {
+        uid,
+      },
+    }).promise();
+
+    if (!response.Item) {
+      const created = Date.now();
+
+      await dynamodb.put({
+        TableName,
+        Item: {
+          uid,
+          created,
+          history: [],
+        },
+      }).promise();
+    }
+  } catch (e) {
+    throw new Error('Database problem');
   }
 };
 
@@ -84,9 +112,19 @@ module.exports.oauth = async (event, context, callback) => {
   const slackToken = data.access_token;
   const userId = data.user_id;
 
-  const token = jwt.sign({ token: slackToken, userId }, JWT_SECRET);
+  try {
+    await createUserDataIfNotExist(userId);
 
-  const responseBuilder = new ResponseBuilder({ token });
+    const token = jwt.sign({ token: slackToken, userId }, JWT_SECRET);
 
-  responseBuilder.exec(callback);
+    const responseBuilder = new ResponseBuilder(callback, { token });
+
+    responseBuilder.exec();
+  } catch (e) {
+    const responseBuilder = new ResponseBuilder(callback);
+    responseBuilder.setStatus(500);
+    responseBuilder.setMessage('Database problem');
+
+    responseBuilder.exec();
+  }
 };

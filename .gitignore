@@ -43,3 +43,6 @@ jspm_packages
 # env
 env.yml
 .env
+
+#dynamodb
+.dynamodb/

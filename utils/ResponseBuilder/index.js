@@ -1,6 +1,7 @@
 
 class ResponseBuilder {
-  constructor(params = {}, status = 200) {
+  constructor(callback, params = {}, status = 200) {
+    this.callback = callback;
     this.status = status;
     this.params = params;
     this.message = 'Ok';
@@ -34,13 +35,13 @@ class ResponseBuilder {
     };
   }
 
-  exec(callback) {
+  exec() {
     if (this.status === 200) {
       const response = this.buildResponse();
-      return callback(null, response);
+      return this.callback(null, response);
     }
 
-    return callback(this.message !== 'Ok' ? this.message : 'Internal error');
+    return this.callback(this.message !== 'Ok' ? this.message : 'Internal error');
   }
 }
 
