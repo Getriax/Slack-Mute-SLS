@@ -1,67 +1,34 @@
-const { WebClient } = require('@slack/client');
-const { ResponseBuilder, Ramda, dynamodb } = require('../utils');
-
-const { splitCommas, joinCommas, transformChannels } = Ramda;
+const { ResponseBuilder } = require('../utils');
+const { SlackDAO, HistoryDAO } = require('../DAO');
 
 module.exports.get = async (event, context, callback) => {
   const { token } = event.requestContext.authorizer;
-  const web = new WebClient(token);
+  const slackDao = new SlackDAO(token);
 
-  const { prefs } = await web.users.prefs.get();
-
-  const muted = splitCommas(prefs.muted_channels);
-
-  const allChannels = await web.conversations.list({
-    limit: 1000,
-    types: 'public_channel,private_channel',
-  });
-  const channels = transformChannels(allChannels.channels);
+  const muted = await slackDao.getMutedChannels();
+  const channels = await slackDao.getAllChannels();
 
   const responseBuilder = new ResponseBuilder(callback, { channels, muted });
   responseBuilder.exec();
 };
 
-const appendUserHistory = async (uid, value) => {
-  const params = {
-    TableName: process.env.DYNAMODB_TABLE,
-    Key: {
-      uid,
-    },
-    ReturnValues: 'ALL_NEW',
-    UpdateExpression: 'set #history = list_append(if_not_exists(#history, :empty_list), :muted)',
-    ExpressionAttributeNames: {
-      '#history': 'history',
-    },
-    ExpressionAttributeValues: {
-      ':muted': [value],
-      ':empty_list': [],
-    },
-  };
-
-  await dynamodb.update(params).promise();
-};
 
 module.exports.set = async (event, context, callback) => {
   const data = JSON.parse(event.body);
   const muttedChnnelsIds = data.muted_channels;
 
   const { token, userId } = event.requestContext.authorizer;
-  const web = new WebClient(token);
 
-  const prefs = { muted_channels: joinCommas(muttedChnnelsIds) };
+  const slackDao = new SlackDAO(token);
+  const historyDao = new HistoryDAO(userId);
 
   const responseBuilder = new ResponseBuilder(callback);
   try {
-    const response = await web.users.prefs.set({ prefs });
-    const muted = response.prefs.muted_channels;
+    const muted = await slackDao.setMutedChannels(muttedChnnelsIds);
 
-    const ts = Date.now();
-    const appendValue = { muted, ts };
+    const res = await historyDao.appendUserHistory(muted);
 
-    responseBuilder.addParams(appendValue);
-
-    await appendUserHistory(userId, appendValue);
-
+    responseBuilder.addParams(res);
     responseBuilder.exec();
   } catch (e) {
     responseBuilder.setStatus(500);

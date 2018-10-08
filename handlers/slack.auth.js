@@ -1,11 +1,11 @@
 const R = require('ramda');
 const jwt = require('jsonwebtoken');
-const { WebClient } = require('@slack/client');
 
-const { ResponseBuilder, buildIAMPolicy, dynamodb } = require('../utils');
+const { ResponseBuilder, buildIAMPolicy } = require('../utils');
 const { paths, scopes } = require('../config/slack.config.json');
+const { SlackDAO, HistoryDAO } = require('../DAO');
 
-const { CLIENT_ID, CLIENT_SECRET, JWT_SECRET } = process.env;
+const { CLIENT_ID, JWT_SECRET } = process.env;
 
 const buildParam = ([key, values]) => R.map(v => `${key}=${v}`, values);
 const flattenTail = R.compose(R.tail, R.flatten);
@@ -27,17 +27,6 @@ module.exports.button = (event, context, callback) => {
   responseBuilder.exec();
 };
 
-const isAuthorized = async (slackToken) => {
-  const web = new WebClient(slackToken);
-
-  try {
-    const { ok } = web.auth.test();
-    return ok;
-  } catch (e) {
-    return false;
-  }
-};
-
 module.exports.authorize = async (event, context, callback) => {
   const { authorizationToken } = event;
 
@@ -56,7 +45,9 @@ module.exports.authorize = async (event, context, callback) => {
     const decoded = jwt.verify(authorizationToken, JWT_SECRET);
     const { token, userId } = decoded;
 
-    if (await !isAuthorized(token)) {
+    const slackDao = new SlackDAO(token);
+
+    if (await !slackDao.isAuthorized()) {
       return unauthorized();
     }
 
@@ -68,52 +59,15 @@ module.exports.authorize = async (event, context, callback) => {
   }
 };
 
-const createUserDataIfNotExist = async (uid) => {
-  const TableName = process.env.DYNAMODB_TABLE;
-
-  try {
-    const response = await dynamodb.get({
-      TableName,
-      Key: {
-        uid,
-      },
-    }).promise();
-
-    if (!response.Item) {
-      const created = Date.now();
-
-      await dynamodb.put({
-        TableName,
-        Item: {
-          uid,
-          created,
-          history: [],
-        },
-      }).promise();
-    }
-  } catch (e) {
-    throw new Error('Database problem');
-  }
-};
-
 module.exports.oauth = async (event, context, callback) => {
   const { code } = event.queryStringParameters;
 
-  const params = {
-    client_id: CLIENT_ID,
-    client_secret: CLIENT_SECRET,
-    code,
-  };
-
-  const web = new WebClient();
-
-  const data = await web.oauth.access(params);
-
-  const slackToken = data.access_token;
-  const userId = data.user_id;
-
   try {
-    await createUserDataIfNotExist(userId);
+    const slackDao = new SlackDAO();
+    const { slackToken, userId } = await slackDao.authorize(code);
+
+    const historyDao = new HistoryDAO(userId);
+    await historyDao.createUserIfNotExists();
 
     const token = jwt.sign({ token: slackToken, userId }, JWT_SECRET);
 
