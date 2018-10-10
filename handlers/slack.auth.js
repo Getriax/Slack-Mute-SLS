@@ -47,7 +47,9 @@ module.exports.authorize = async (event, context, callback) => {
 
     const slackDao = new SlackDAO(token);
 
-    if (await !slackDao.isAuthorized()) {
+    const authorized = await slackDao.isAuthorized();
+
+    if (!authorized) {
       return unauthorized();
     }
 
@@ -60,7 +62,18 @@ module.exports.authorize = async (event, context, callback) => {
 };
 
 module.exports.oauth = async (event, context, callback) => {
-  const { code } = event.queryStringParameters;
+  let code;
+  if (event && event.queryStringParameters) {
+    ({ code } = event.queryStringParameters);
+  }
+
+  const responseBuilder = new ResponseBuilder(callback);
+
+  if (!code) {
+    responseBuilder.setStatus(403);
+    responseBuilder.setMessage('Property code is required');
+    return responseBuilder.exec();
+  }
 
   try {
     const slackDao = new SlackDAO();
@@ -70,15 +83,13 @@ module.exports.oauth = async (event, context, callback) => {
     await historyDao.createUserIfNotExists();
 
     const token = jwt.sign({ token: slackToken, userId }, JWT_SECRET);
+    responseBuilder.addParams({ token });
 
-    const responseBuilder = new ResponseBuilder(callback, { token });
-
-    responseBuilder.exec();
+    return responseBuilder.exec();
   } catch (e) {
-    const responseBuilder = new ResponseBuilder(callback);
     responseBuilder.setStatus(500);
-    responseBuilder.setMessage('Database problem');
+    responseBuilder.setMessage(e.message);
 
-    responseBuilder.exec();
+    return responseBuilder.exec();
   }
 };
