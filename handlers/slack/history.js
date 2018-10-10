@@ -1,5 +1,5 @@
-const { HistoryDAO } = require('../DAO');
-const { ResponseBuilder } = require('../utils');
+const { HistoryDAO } = require('../../DAO');
+const { ResponseBuilder } = require('../../utils');
 
 module.exports.get = async (event, context, callback) => {
   const { userId } = event.requestContext.authorizer;

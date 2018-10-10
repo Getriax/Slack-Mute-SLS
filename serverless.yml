@@ -6,6 +6,7 @@ plugins:
   - serverless-webpack
   - serverless-dynamodb-local
   - serverless-offline
+  - serverless-mocha-plugin
 
 # serverless-webpack configuration
 # Enable auto-packing of external modules
@@ -26,7 +27,7 @@ custom:
 provider:
   name: aws
   runtime: nodejs8.10
-  region: eu-west-2
+  region: ${file(./env.yml):REGION}
   environment: ${file(./env.yml)}
   iamRoleStatements:
     - Effect: Allow
@@ -41,7 +42,7 @@ provider:
 
 functions:
   button:
-    handler: handlers/slack.auth.button
+    handler: handlers/slack/auth.button
     events:
       - http:
           path: slack/button
@@ -49,10 +50,10 @@ functions:
           cors: true
 
   authorize:
-    handler: handlers/slack.auth.authorize
+    handler: handlers/slack/auth.authorize
 
   oauth:
-    handler: handlers/slack.auth.oauth
+    handler: handlers/slack/auth.oauth
     events:
       - http:
           path: slack/oauth
@@ -60,7 +61,7 @@ functions:
           cors: true
 
   muttedGet:
-    handler: handlers/slack.muted.get
+    handler: handlers/slack/muted.get
     events:
       - http:
           path: slack/muted
@@ -69,7 +70,7 @@ functions:
           authorizer: authorize
 
   muttedSet:
-    handler: handlers/slack.muted.set
+    handler: handlers/slack/muted.set
     events:
       - http:
           path: slack/muted
@@ -78,7 +79,7 @@ functions:
           authorizer: authorize
 
   historyGet:
-    handler: handlers/slack.history.get
+    handler: handlers/slack/history.get
     events:
       - http:
           path: slack/history
@@ -87,7 +88,7 @@ functions:
           authorizer: authorize
 
   historyDelete:
-    handler: handlers/slack.history.delete
+    handler: handlers/slack/history.delete
     events:
       - http:
           path: slack/history

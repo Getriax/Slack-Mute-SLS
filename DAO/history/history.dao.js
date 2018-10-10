@@ -78,7 +78,7 @@ class HistoryDAO {
         },
       }).promise();
 
-      if (!response.Item) {
+      if (!response || !response.Item) {
         const created = Date.now();
 
         await dynamodb.put({

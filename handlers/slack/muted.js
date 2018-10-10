@@ -1,5 +1,5 @@
-const { ResponseBuilder } = require('../utils');
-const { SlackDAO, HistoryDAO } = require('../DAO');
+const { ResponseBuilder } = require('../../utils');
+const { SlackDAO, HistoryDAO } = require('../../DAO');
 
 module.exports.get = async (event, context, callback) => {
   const { token } = event.requestContext.authorizer;

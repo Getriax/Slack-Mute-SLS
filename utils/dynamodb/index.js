@@ -1,9 +1,9 @@
 /* eslint-disable import/no-extraneous-dependencies */
 const AWS = require('aws-sdk');
 
-let options = {};
+let options = { region: process.env.REGION };
 
-const isOffline = () => process.env.NODE_ENV === 'development';
+const isOffline = () => /development|test/.exec(process.env.NODE_ENV);
 
 if (isOffline()) {
   options = {
@@ -12,7 +12,6 @@ if (isOffline()) {
   };
 }
 
-console.log({ options });
 const client = new AWS.DynamoDB.DocumentClient(options);
 
 module.exports = client;

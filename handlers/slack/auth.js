@@ -1,9 +1,9 @@
 const R = require('ramda');
 const jwt = require('jsonwebtoken');
 
-const { ResponseBuilder, buildIAMPolicy } = require('../utils');
-const { paths, scopes } = require('../config/slack.config.json');
-const { SlackDAO, HistoryDAO } = require('../DAO');
+const { ResponseBuilder, buildIAMPolicy } = require('../../utils');
+const { paths, scopes } = require('../../config/slack.config.json');
+const { SlackDAO, HistoryDAO } = require('../../DAO');
 
 const { CLIENT_ID, JWT_SECRET } = process.env;
 

@@ -7,12 +7,20 @@ const { CLIENT_ID, CLIENT_SECRET } = process.env;
 
 class SlackDAO {
   constructor(token) {
-    this.client = new WebClient(token);
+    this.client = SlackDAO.slackClient(token);
+  }
+
+  static slackClient(token) {
+    if (token) {
+      return new WebClient(token);
+    }
+
+    return new WebClient();
   }
 
   async isAuthorized() {
     try {
-      const { ok } = await this.client.web.auth.test();
+      const { ok } = await this.client.auth.test();
       return ok;
     } catch (e) {
       return false;
@@ -26,12 +34,16 @@ class SlackDAO {
       code,
     };
 
-    const data = await this.client.oauth.access(params);
+    try {
+      const data = await this.client.oauth.access(params);
 
-    const slackToken = data.access_token;
-    const userId = data.user_id;
+      const slackToken = data.access_token;
+      const userId = data.user_id;
 
-    return { slackToken, userId };
+      return { slackToken, userId };
+    } catch (e) {
+      throw new Error('Slack access denyed');
+    }
   }
 
   async getAllChannels(limit = 1000) {
