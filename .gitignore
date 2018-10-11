@@ -46,3 +46,6 @@ env.yml
 
 #dynamodb
 .dynamodb/
+
+#OS
+.DS_Store

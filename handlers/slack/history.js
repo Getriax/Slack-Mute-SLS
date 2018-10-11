@@ -21,7 +21,7 @@ module.exports.get = async (event, context, callback) => {
 
 module.exports.delete = async (event, context, callback) => {
   const { userId } = event.requestContext.authorizer;
-  const { deleteIndex } = JSON.parse(event.body);
+  const { delete_index: deleteIndex } = JSON.parse(event.body);
 
   const historyDao = new HistoryDAO(userId);
   const responseBuilder = new ResponseBuilder(callback);

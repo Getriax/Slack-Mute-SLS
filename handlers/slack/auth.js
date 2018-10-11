@@ -53,7 +53,7 @@ module.exports.authorize = async (event, context, callback) => {
       return unauthorized();
     }
 
-    const policyDocument = buildIAMPolicy(userId, 'Allow', event.methodArn, { token, userId });
+    const policyDocument = buildIAMPolicy(userId, 'Allow', '*', { token, userId });
 
     return callback(null, policyDocument);
   } catch (e) {
