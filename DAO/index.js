@@ -1,7 +1,4 @@
-const SlackDAO = require('./slack/slack.dao');
-const HistoryDAO = require('./history/history.dao');
+import SlackDAO from './slack/slack.dao';
+import HistoryDAO from './history/history.dao';
 
-module.exports = {
-  SlackDAO,
-  HistoryDAO,
-};
+export { SlackDAO, HistoryDAO };

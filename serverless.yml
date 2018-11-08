@@ -97,7 +97,7 @@ functions:
           authorizer: authorize
 
   historyDelete:
-    handler: handlers/slack/history.delete
+    handler: handlers/slack/history.remove
     events:
       - http:
           path: slack/history

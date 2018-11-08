@@ -1,6 +1,6 @@
-const { dynamodb } = require('../../utils');
+import { dynamodb } from '../../utils';
 
-class HistoryDAO {
+export default class HistoryDAO {
   constructor(uid) {
     this.uid = uid;
   }
@@ -95,5 +95,3 @@ class HistoryDAO {
     }
   }
 }
-
-module.exports = HistoryDAO;

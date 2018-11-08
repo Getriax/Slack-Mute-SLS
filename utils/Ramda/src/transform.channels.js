@@ -1,8 +1,8 @@
-const R = require('ramda');
+import * as R from 'ramda';
 
 const buildChannels = R.reduce((acc, channel) => {
   const { id, name } = channel;
   return Object.assign(acc, { [id]: name });
 }, {});
 
-module.exports = buildChannels;
+export default buildChannels;

@@ -1,5 +1,5 @@
 /* eslint-disable import/no-extraneous-dependencies */
-const AWS = require('aws-sdk');
+import * as AWS from 'aws-sdk';
 
 let options = { region: process.env.REGION };
 
@@ -14,4 +14,4 @@ if (isOffline()) {
 
 const client = new AWS.DynamoDB.DocumentClient(options);
 
-module.exports = client;
+export default client;

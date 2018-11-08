@@ -1,7 +1,7 @@
-const { HistoryDAO } = require('../../DAO');
-const { ResponseBuilder } = require('../../utils');
+import { HistoryDAO } from '../../DAO';
+import { ResponseBuilder } from '../../utils';
 
-module.exports.get = async (event, context, callback) => {
+export const get = async (event, context, callback) => {
   const { userId } = event.requestContext.authorizer;
   const historyDao = new HistoryDAO(userId);
 
@@ -19,7 +19,7 @@ module.exports.get = async (event, context, callback) => {
   responseBuilder.exec();
 };
 
-module.exports.delete = async (event, context, callback) => {
+export const remove = async (event, context, callback) => {
   const { userId } = event.requestContext.authorizer;
   const { delete_index: deleteIndex } = JSON.parse(event.body);
 

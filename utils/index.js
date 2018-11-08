@@ -1,11 +1,4 @@
-const ResponseBuilder = require('./ResponseBuilder');
-const buildIAMPolicy = require('./buildIAMPolicy');
-const Ramda = require('./Ramda');
-const dynamodb = require('./dynamodb');
-
-module.exports = {
-  ResponseBuilder,
-  buildIAMPolicy,
-  Ramda,
-  dynamodb,
-};
+export { default as ResponseBuilder } from './ResponseBuilder';
+export { default as buildIAMPolicy } from './buildIAMPolicy';
+export { default as Ramda } from './Ramda';
+export { default as dynamodb } from './dynamodb';

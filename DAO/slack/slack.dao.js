@@ -1,11 +1,11 @@
-const { WebClient } = require('@slack/client');
-const { Ramda } = require('../../utils');
+import { WebClient } from '@slack/client';
+import { Ramda } from '../../utils';
 
 const { splitCommas, joinCommas, transformChannels } = Ramda;
 
 const { CLIENT_ID, CLIENT_SECRET } = process.env;
 
-class SlackDAO {
+export default class SlackDAO {
   constructor(token) {
     this.client = SlackDAO.slackClient(token);
   }
@@ -69,5 +69,3 @@ class SlackDAO {
     return response.prefs.muted_channels;
   }
 }
-
-module.exports = SlackDAO;

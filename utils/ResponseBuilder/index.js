@@ -1,5 +1,5 @@
 
-class ResponseBuilder {
+export default class ResponseBuilder {
   constructor(callback, params = {}, status = 200) {
     this.callback = callback;
     this.status = status;
@@ -32,6 +32,10 @@ class ResponseBuilder {
         message: this.message,
         ...this.params,
       }),
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true,
+      },
     };
   }
 
@@ -44,5 +48,3 @@ class ResponseBuilder {
     return this.callback(this.message !== 'Ok' ? this.message : 'Internal error');
   }
 }
-
-module.exports = ResponseBuilder;

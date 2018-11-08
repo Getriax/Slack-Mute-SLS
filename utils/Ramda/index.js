@@ -1,8 +1,8 @@
-const splitCommas = require('./src/splitCommas');
-const joinCommas = require('./src/joinCommas');
-const transformChannels = require('./src/transform.channels');
+import splitCommas from './src/splitCommas';
+import joinCommas from './src/joinCommas';
+import transformChannels from './src/transform.channels';
 
-module.exports = {
+export default {
   splitCommas,
   joinCommas,
   transformChannels,

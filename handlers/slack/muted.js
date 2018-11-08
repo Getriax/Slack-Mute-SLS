@@ -1,7 +1,9 @@
-const { ResponseBuilder } = require('../../utils');
-const { SlackDAO, HistoryDAO } = require('../../DAO');
+import { ResponseBuilder, Ramda } from '../../utils';
+import { SlackDAO, HistoryDAO } from '../../DAO';
 
-module.exports.get = async (event, context, callback) => {
+const { splitCommas } = Ramda;
+
+export const get = async (event, context, callback) => {
   const { token } = event.requestContext.authorizer;
   const slackDao = new SlackDAO(token);
 
@@ -13,7 +15,7 @@ module.exports.get = async (event, context, callback) => {
 };
 
 
-module.exports.set = async (event, context, callback) => {
+export const set = async (event, context, callback) => {
   const data = JSON.parse(event.body);
   const muttedChnnelsIds = data.muted_channels;
 
@@ -25,8 +27,13 @@ module.exports.set = async (event, context, callback) => {
   const responseBuilder = new ResponseBuilder(callback);
   try {
     const muted = await slackDao.setMutedChannels(muttedChnnelsIds);
+    const channels = await slackDao.getAllChannels();
 
-    const res = await historyDao.appendUserHistory(muted);
+    const mutedArray = splitCommas(muted);
+
+    const channelNames = mutedArray.map(id => channels[id]);
+
+    const res = await historyDao.appendUserHistory(channelNames);
 
     responseBuilder.addParams(res);
     responseBuilder.exec();

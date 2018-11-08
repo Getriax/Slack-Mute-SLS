@@ -1,3 +1,3 @@
-const R = require('ramda');
+import * as R from 'ramda';
 
-module.exports = R.join(',');
+export default R.join(',');

@@ -1,9 +1,9 @@
-const R = require('ramda');
-const jwt = require('jsonwebtoken');
+import * as R from 'ramda';
+import * as jwt from 'jsonwebtoken';
 
-const { ResponseBuilder, buildIAMPolicy } = require('../../utils');
-const { paths, scopes } = require('../../config/slack.config.json');
-const { SlackDAO, HistoryDAO } = require('../../DAO');
+import { ResponseBuilder, buildIAMPolicy } from '../../utils';
+import { paths, scopes } from '../../config/slack.config.json';
+import { SlackDAO, HistoryDAO } from '../../DAO';
 
 const { CLIENT_ID, JWT_SECRET } = process.env;
 
@@ -15,7 +15,7 @@ const buildParams = R.pipe(R.toPairs, keyValues, R.map(buildParam), R.flatten, R
 
 const commas = R.join(',');
 
-module.exports.button = (event, context, callback) => {
+export const button = (event, context, callback) => {
   const params = {
     scope: commas(scopes),
     client_id: CLIENT_ID,
@@ -27,7 +27,7 @@ module.exports.button = (event, context, callback) => {
   responseBuilder.exec();
 };
 
-module.exports.authorize = async (event, context, callback) => {
+export const authorize = async (event, context, callback) => {
   const { authorizationToken } = event;
 
   const responseBuilder = new ResponseBuilder(callback);
@@ -61,7 +61,7 @@ module.exports.authorize = async (event, context, callback) => {
   }
 };
 
-module.exports.oauth = async (event, context, callback) => {
+export const oauth = async (event, context, callback) => {
   let code;
   if (event && event.queryStringParameters) {
     ({ code } = event.queryStringParameters);
@@ -87,6 +87,7 @@ module.exports.oauth = async (event, context, callback) => {
 
     return responseBuilder.exec();
   } catch (e) {
+    console.log(e);
     responseBuilder.setStatus(500);
     responseBuilder.setMessage(e.message);
 

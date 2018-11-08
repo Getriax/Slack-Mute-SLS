@@ -1,5 +1,5 @@
 
-module.exports = (id, effect, resource, context) => ({
+export default (id, effect, resource, context) => ({
   principalId: id,
   policyDocument: {
     Version: '2012-10-17',
